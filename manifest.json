@@ -1,0 +1,14 @@
+{
+  "background_color": "#09001f",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "MATH QUIZ 108",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "MATH QUIZ 108",
+  "start_url": "/",
+  "theme_color": "#09001f",
+  "id": "math-quiz-108",
+  "description": "MATH QUIZ 108 (By Tanweer Ahamad) is an exciting maths quiz game with 500 levels. Test your maths skills, earn points, and become a Math Champion!",
+  "lang": "en"
+}
