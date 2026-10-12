@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="MATH QUIZ 108 - An exciting maths quiz game with 500 levels, progressive level unlocking, and score tracking.">
+<meta name="theme-color" content="#09001f">
+<link rel="manifest" href="./manifest.json">
 <title>MATH QUIZ 108 - 500 Level Math Game</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -488,6 +491,15 @@ function nextLevel(){
 
 
 buildLevels();
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("./sw.js").catch(function (error) {
+      console.log("Service worker registration failed:", error);
+    });
+  });
+}
 </script>
 </body>
 </html>
