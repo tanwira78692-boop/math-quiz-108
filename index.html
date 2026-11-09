@@ -52,9 +52,10 @@ h1{
 .done{background:linear-gradient(135deg,#00bd91,#008dff)}
 .lock{background:#302c3c;color:#777;cursor:not-allowed}
 .icon{display:block;font-size:20px;margin-bottom:5px}
-.top{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.info{text-align:center;padding:13px;border-radius:14px;background:#ffffff0d;color:#aaa3c5}
+.top{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.info{min-width:0;text-align:center;padding:13px 6px;border-radius:14px;background:#ffffff0d;color:#aaa3c5}
 .info b{display:block;color:#fff;font-size:22px;margin-top:3px}
+.timer-low{color:#ff5577!important}
 .diff{text-align:center;font-size:20px;font-weight:900;margin:18px}
 .easy{color:#00ff9d}.medium{color:#ffd000}.hard{color:#ff5577}
 .bar{height:11px;background:#ffffff14;border-radius:20px;overflow:hidden}
@@ -115,12 +116,14 @@ h1{
   <div class="top">
     <div class="info">LEVEL<b id="levelNo">1</b></div>
     <div class="info">SCORE<b id="scoreQuiz">0</b></div>
+    <div class="info">TIME<b id="timer">00:30</b></div>
   </div>
   <div id="difficulty" class="diff easy">🟢 EASY</div>
   <div class="bar"><div id="fill" class="fill"></div></div>
   <div id="question" class="question">Loading...</div>
   <div id="options" class="options"></div>
   <div id="msg" class="msg"></div>
+  <button id="retryBtn" class="check" style="display:none" onclick="retryLevel()">🔄 TRY AGAIN</button>
   <button class="home" onclick="showLevels()">⬅️ BACK TO LEVELS</button>
 </section>
 
@@ -179,6 +182,8 @@ if (isNaN(score)) score = 0;
 var current = 1;
 var correct = 0;
 var wrongAttempts = 0;
+var timerInterval = null;
+var timeLeft = 30;
 
 function save(){
   localStorage.setItem("mq108_game_version", GAME_VERSION);
@@ -188,6 +193,7 @@ function save(){
 }
 
 function screen(id){
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
   document.querySelectorAll(".screen").forEach(function(x){x.classList.remove("active")});
   document.getElementById(id).classList.add("active");
 }
@@ -412,6 +418,14 @@ function start(n){
 }
 
 function newQuestion(){
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  var seconds = current <= 150 ? 30 : (current <= 325 ? 60 : 120);
+  timeLeft = seconds;
+  var timerEl = document.getElementById("timer");
+  timerEl.classList.remove("timer-low");
+  timerEl.textContent = formatTime(timeLeft);
+  document.getElementById("retryBtn").style.display = "none";
+  document.getElementById("options").style.pointerEvents = "auto";
   var d=document.getElementById("difficulty");
   var info=difficultyFor(current);
   d.textContent=info.text;
@@ -446,9 +460,33 @@ function newQuestion(){
     b.onclick=function(){checkAnswer(value)};
     box.appendChild(b);
   });
+  timerInterval = setInterval(function(){
+    timeLeft--;
+    timerEl.textContent = formatTime(timeLeft);
+    if (timeLeft <= 10) timerEl.classList.add("timer-low");
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      Array.prototype.forEach.call(box.querySelectorAll("button"), function(btn){ btn.disabled = true; });
+      document.getElementById("msg").textContent = "⏰ TIME UP! Try this level again.";
+      document.getElementById("msg").className = "msg bad";
+      document.getElementById("retryBtn").style.display = "block";
+    }
+  }, 1000);
+}
+
+function formatTime(seconds){
+  var m = Math.floor(seconds / 60);
+  var s = seconds % 60;
+  return String(m).padStart(2,"0") + ":" + String(s).padStart(2,"0");
+}
+
+function retryLevel(){
+  newQuestion();
 }
 
 function checkAnswer(value){
+  if (timeLeft <= 0) return;
   if(value!==correct){
     wrongAttempts++;
     score=Math.max(0,score-5);
@@ -459,6 +497,7 @@ function checkAnswer(value){
     return;
   }
 
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
   var points=current<=150?10:(current<=325?20:30);
   score+=points;
   if(completed.indexOf(current)<0)completed.push(current);
